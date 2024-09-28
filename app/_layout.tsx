@@ -8,7 +8,7 @@ export default function Layout() {
 	return (
 		<>
 			<IconRegistry icons={EvaIconsPack} />
-			<ApplicationProvider {...eva} theme={eva.dark}>
+			<ApplicationProvider {...eva} theme={eva.light}>
 				<Slot />
 			</ApplicationProvider>
 		</>

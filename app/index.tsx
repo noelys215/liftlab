@@ -15,7 +15,26 @@ const SetupScreen: React.FC = () => {
 			await AsyncStorage.setItem('squatMax', squatMax);
 			await AsyncStorage.setItem('benchMax', benchMax);
 			await AsyncStorage.setItem('deadliftMax', deadliftMax);
-			router.push('/screens/WorkoutOverviewScreen');
+
+			// Determine where the user should start
+			const lastCompletedWeek = await AsyncStorage.getItem('lastCompletedWeek');
+			const lastCompletedDay = await AsyncStorage.getItem('lastCompletedDay');
+
+			let nextWeek = 1;
+			let nextDay = 1;
+
+			if (lastCompletedWeek && lastCompletedDay) {
+				nextWeek = parseInt(lastCompletedWeek);
+				nextDay = parseInt(lastCompletedDay) + 1;
+
+				// Assuming each week has 7 days for this example
+				if (nextDay > 7) {
+					nextDay = 1;
+					nextWeek += 1;
+				}
+			}
+
+			router.replace(`/screens/WorkoutDetailScreen?week=${nextWeek}&day=${nextDay}`);
 		} catch (error) {
 			console.error('Error saving 1RM values', error);
 		}
