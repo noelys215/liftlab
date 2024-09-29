@@ -3,131 +3,193 @@ import { StyleSheet, View, SafeAreaView } from 'react-native';
 import { Layout, Text, Icon, CheckBox, Select, SelectItem, IndexPath } from '@ui-kitten/components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { intensities } from '../../constants/intensities';
 
 const WorkoutDetailScreen: React.FC = () => {
 	const [squatMax, setSquatMax] = useState<number | null>(null);
-	const [isCompleted, setIsCompleted] = useState<boolean>(false);
-	const [selectedIndex, setSelectedIndex] = useState<IndexPath>(new IndexPath(0));
+	const [benchMax, setBenchMax] = useState<number | null>(null);
+	const [deadliftMax, setDeadliftMax] = useState<number | null>(null);
+	const [isCompleted, setIsCompleted] = useState<{ [key: string]: boolean }>({});
+	const [selectedReps, setSelectedReps] = useState<{ [key: string]: IndexPath }>({
+		deadlift: new IndexPath(0),
+		benchPress: new IndexPath(0),
+		squat: new IndexPath(0),
+	});
+	const [rounding, setRounding] = useState<number>(5);
 	const router = useRouter();
-	const { week: weekParam, day: dayParam } = useLocalSearchParams();
+	const { week: weekParam } = useLocalSearchParams();
 
-	// Ensure single string values for week and day
 	const week = Array.isArray(weekParam) ? weekParam[0] : weekParam;
-	const day = Array.isArray(dayParam) ? dayParam[0] : dayParam;
+	const roundingOptions = [0, 1, 2, 3, 4, 5];
 
 	useEffect(() => {
-		const getUserMaxes = async () => {
+		const getUserData = async () => {
 			try {
 				const squat = await AsyncStorage.getItem('squatMax');
-				if (squat) {
-					setSquatMax(parseInt(squat));
-				}
+				const bench = await AsyncStorage.getItem('benchMax');
+				const deadlift = await AsyncStorage.getItem('deadliftMax');
+				const rounding = await AsyncStorage.getItem('rounding');
+
+				if (squat) setSquatMax(parseInt(squat));
+				if (bench) setBenchMax(parseInt(bench));
+				if (deadlift) setDeadliftMax(parseInt(deadlift));
+				if (rounding) setRounding(parseFloat(rounding));
 			} catch (error) {
-				console.error('Error retrieving 1RM values', error);
+				console.error('Error retrieving data', error);
 			}
 		};
 
-		getUserMaxes();
+		getUserData();
 	}, []);
 
 	const calculateWorkoutWeight = (oneRepMax: number, percentage: number) => {
-		return Math.round(oneRepMax * (percentage / 100));
+		const weight = oneRepMax * (percentage / 100);
+		return Math.round(weight / rounding) * rounding;
 	};
 
-	const markAsComplete = async () => {
-		setIsCompleted(true);
-		await AsyncStorage.setItem('lastCompletedWeek', week as string);
-		await AsyncStorage.setItem('lastCompletedDay', day as string);
-	};
-
-	const goToNextDay = () => {
-		let nextWeek = parseInt(week as string);
-		let nextDay = parseInt(day as string) + 1;
-
-		if (nextDay > 7) {
-			nextDay = 1;
-			nextWeek += 1;
+	const handleComplete = async (lift: string) => {
+		setIsCompleted((prev) => ({ ...prev, [lift]: !prev[lift] }));
+		if (!isCompleted[lift]) {
+			await AsyncStorage.setItem('lastCompletedWeek', week as string);
 		}
-
-		router.push(`./WorkoutDetailScreen?week=${nextWeek}&day=${nextDay}`);
 	};
 
-	const goToPreviousDay = () => {
-		let previousWeek = parseInt(week as string);
-		let previousDay = parseInt(day as string) - 1;
+	const goToNextWeek = () => {
+		let nextWeek = parseInt(week as string) + 1;
+		router.push(`./WorkoutDetailScreen?week=${nextWeek}`);
+	};
 
-		if (previousDay < 1) {
-			previousWeek = previousWeek > 1 ? previousWeek - 1 : previousWeek;
-			previousDay = 7;
+	const goToPreviousWeek = () => {
+		let previousWeek = parseInt(week as string) - 1;
+		if (previousWeek < 1) {
+			previousWeek = 1;
 		}
-
-		router.push(`./WorkoutDetailScreen?week=${previousWeek}&day=${previousDay}`);
+		router.push(`./WorkoutDetailScreen?week=${previousWeek}`);
 	};
 
 	return (
 		<SafeAreaView style={styles.safeArea}>
 			<Layout style={styles.container}>
-				{/* Week and Day Navigation */}
+				{/* Week Navigation */}
 				<View style={styles.navigationContainer}>
-					<View style={styles.row}>
-						<Icon
-							name="arrow-back-outline"
-							onPress={goToPreviousDay}
-							style={styles.arrowIcon}
-						/>
-						<Text category="h1">Week {week}</Text>
-						<Icon
-							name="arrow-forward-outline"
-							onPress={goToNextDay}
-							style={styles.arrowIcon}
-						/>
-					</View>
-					<View style={styles.row}>
-						<Icon
-							name="arrow-back-outline"
-							onPress={goToPreviousDay}
-							style={styles.arrowIcon}
-						/>
-						<Text category="h3">Day {day}</Text>
-						<Icon
-							name="arrow-forward-outline"
-							onPress={goToNextDay}
-							style={styles.arrowIcon}
-						/>
-					</View>
+					<Icon
+						name="arrow-back-outline"
+						onPress={goToPreviousWeek}
+						style={styles.arrowIcon}
+					/>
+					<Text category="h1">Week {week}</Text>
+					<Icon
+						name="arrow-forward-outline"
+						onPress={goToNextWeek}
+						style={styles.arrowIcon}
+					/>
 				</View>
 
-				{/* Workout Details */}
-				<View style={styles.workoutDetailsContainer}>
-					{squatMax !== null && (
+				{/* Deadlift */}
+				<View style={styles.workoutSection}>
+					{deadliftMax && (
 						<>
 							<Text category="s1" style={styles.workoutText}>
-								Deadlift: {calculateWorkoutWeight(squatMax, 70)} lbs, 5 reps
+								Deadlift:{' '}
+								{calculateWorkoutWeight(
+									deadliftMax,
+									intensities.deadlift[parseInt(week) - 1]
+								)}{' '}
+								lbs, 5 reps
 							</Text>
 							<Text category="s1" style={styles.workoutText}>
-								Rep out Target: 9 reps
+								Repout Target: 9 reps
 							</Text>
 						</>
 					)}
-
-					{/* UI Kitten Select for selecting reps */}
-					<View style={styles.selectContainer}>
-						<Select
-							selectedIndex={selectedIndex}
-							value={`Beat by ${selectedIndex.row} Reps`}
-							onSelect={(index) => setSelectedIndex(index as IndexPath)}
-							style={styles.select}>
-							{Array.from({ length: 6 }, (_, index) => (
-								<SelectItem key={index} title={`Beat by ${index} reps`} />
-							))}
-						</Select>
-					</View>
-
+					<Select
+						label="Beat by X Reps"
+						selectedIndex={selectedReps.deadlift}
+						onSelect={(index) =>
+							setSelectedReps((prev) => ({ ...prev, deadlift: index as IndexPath }))
+						}
+						style={styles.picker}>
+						{roundingOptions.map((val) => (
+							<SelectItem key={val} title={`Reps: ${val}`} />
+						))}
+					</Select>
 					<CheckBox
-						style={styles.checkbox}
-						checked={isCompleted}
-						onChange={markAsComplete}>
-						{isCompleted ? 'Completed' : 'Mark as Complete'}
+						checked={isCompleted.deadlift}
+						onChange={() => handleComplete('deadlift')}
+						style={styles.checkbox}>
+						{isCompleted.deadlift ? 'Completed' : 'Mark as Complete'}
+					</CheckBox>
+				</View>
+
+				{/* Bench Press */}
+				<View style={styles.workoutSection}>
+					{benchMax && (
+						<>
+							<Text category="s1" style={styles.workoutText}>
+								Bench Press:{' '}
+								{calculateWorkoutWeight(
+									benchMax,
+									intensities.benchPress[parseInt(week) - 1]
+								)}{' '}
+								lbs, 5 reps
+							</Text>
+							<Text category="s1" style={styles.workoutText}>
+								Repout Target: 9 reps
+							</Text>
+						</>
+					)}
+					<Select
+						label="Beat by X Reps"
+						selectedIndex={selectedReps.benchPress}
+						onSelect={(index) =>
+							setSelectedReps((prev) => ({ ...prev, benchPress: index as IndexPath }))
+						}
+						style={styles.picker}>
+						{roundingOptions.map((val) => (
+							<SelectItem key={val} title={`Reps: ${val}`} />
+						))}
+					</Select>
+					<CheckBox
+						checked={isCompleted.benchPress}
+						onChange={() => handleComplete('benchPress')}
+						style={styles.checkbox}>
+						{isCompleted.benchPress ? 'Completed' : 'Mark as Complete'}
+					</CheckBox>
+				</View>
+
+				{/* Squat */}
+				<View style={styles.workoutSection}>
+					{squatMax && (
+						<>
+							<Text category="s1" style={styles.workoutText}>
+								Squat:{' '}
+								{calculateWorkoutWeight(
+									squatMax,
+									intensities.squat[parseInt(week) - 1]
+								)}{' '}
+								lbs, 5 reps
+							</Text>
+							<Text category="s1" style={styles.workoutText}>
+								Repout Target: 9 reps
+							</Text>
+						</>
+					)}
+					<Select
+						label="Beat by X Reps"
+						selectedIndex={selectedReps.squat}
+						onSelect={(index) =>
+							setSelectedReps((prev) => ({ ...prev, squat: index as IndexPath }))
+						}
+						style={styles.picker}>
+						{roundingOptions.map((val) => (
+							<SelectItem key={val} title={`Reps: ${val}`} />
+						))}
+					</Select>
+					<CheckBox
+						checked={isCompleted.squat}
+						onChange={() => handleComplete('squat')}
+						style={styles.checkbox}>
+						{isCompleted.squat ? 'Completed' : 'Mark as Complete'}
 					</CheckBox>
 				</View>
 			</Layout>
@@ -149,19 +211,16 @@ const styles = StyleSheet.create({
 	navigationContainer: {
 		alignItems: 'center',
 		marginVertical: 10,
-	},
-	row: {
 		flexDirection: 'row',
-		alignItems: 'center',
-		marginVertical: 5,
 	},
 	arrowIcon: {
-		width: 24,
-		height: 24,
+		width: 32,
+		height: 32,
+		marginHorizontal: 10,
 	},
-	workoutDetailsContainer: {
+	workoutSection: {
 		alignItems: 'center',
-		marginVertical: 10,
+		marginVertical: 15,
 	},
 	workoutText: {
 		marginBottom: 5,
@@ -170,12 +229,9 @@ const styles = StyleSheet.create({
 	checkbox: {
 		marginTop: 10,
 	},
-	selectContainer: {
+	picker: {
 		marginVertical: 10,
 		width: 200,
-	},
-	select: {
-		marginVertical: 5,
 	},
 });
 
