@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, SafeAreaView } from 'react-native';
-import { Layout, Text, Icon, CheckBox } from '@ui-kitten/components';
+import { Layout, Text, Icon, CheckBox, Select, SelectItem, IndexPath } from '@ui-kitten/components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 const WorkoutDetailScreen: React.FC = () => {
 	const [squatMax, setSquatMax] = useState<number | null>(null);
 	const [isCompleted, setIsCompleted] = useState<boolean>(false);
+	const [selectedIndex, setSelectedIndex] = useState<IndexPath>(new IndexPath(0));
 	const router = useRouter();
 	const { week: weekParam, day: dayParam } = useLocalSearchParams();
 
@@ -48,7 +49,7 @@ const WorkoutDetailScreen: React.FC = () => {
 			nextWeek += 1;
 		}
 
-		router.push(`/screens/WorkoutDetailScreen?week=${nextWeek}&day=${nextDay}`);
+		router.push(`./WorkoutDetailScreen?week=${nextWeek}&day=${nextDay}`);
 	};
 
 	const goToPreviousDay = () => {
@@ -60,27 +61,12 @@ const WorkoutDetailScreen: React.FC = () => {
 			previousDay = 7;
 		}
 
-		router.push(`/screens/WorkoutDetailScreen?week=${previousWeek}&day=${previousDay}`);
-	};
-
-	const goToSettings = () => {
-		router.push('/'); // Navigate to `app/index.tsx`
+		router.push(`./WorkoutDetailScreen?week=${previousWeek}&day=${previousDay}`);
 	};
 
 	return (
 		<SafeAreaView style={styles.safeArea}>
 			<Layout style={styles.container}>
-				{/* Settings Icon at the Top Right */}
-				<View style={styles.settingsContainer}>
-					<Icon
-						name="settings-outline"
-						onPress={goToSettings}
-						width={32}
-						height={32}
-						fill="#000"
-					/>
-				</View>
-
 				{/* Week and Day Navigation */}
 				<View style={styles.navigationContainer}>
 					<View style={styles.row}>
@@ -123,6 +109,20 @@ const WorkoutDetailScreen: React.FC = () => {
 							</Text>
 						</>
 					)}
+
+					{/* UI Kitten Select for selecting reps */}
+					<View style={styles.selectContainer}>
+						<Select
+							selectedIndex={selectedIndex}
+							value={`Beat by ${selectedIndex.row} Reps`}
+							onSelect={(index) => setSelectedIndex(index as IndexPath)}
+							style={styles.select}>
+							{Array.from({ length: 6 }, (_, index) => (
+								<SelectItem key={index} title={`Beat by ${index} reps`} />
+							))}
+						</Select>
+					</View>
+
 					<CheckBox
 						style={styles.checkbox}
 						checked={isCompleted}
@@ -142,14 +142,9 @@ const styles = StyleSheet.create({
 	},
 	container: {
 		flex: 1,
-		justifyContent: 'center', // Center everything vertically
-		alignItems: 'center', // Center everything horizontally
+		justifyContent: 'center',
+		alignItems: 'center',
 		paddingHorizontal: 20,
-	},
-	settingsContainer: {
-		position: 'absolute',
-		top: 10,
-		right: 20,
 	},
 	navigationContainer: {
 		alignItems: 'center',
@@ -159,11 +154,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		marginVertical: 5,
-	},
-	header: {
-		fontSize: 22,
-		fontWeight: 'bold',
-		marginHorizontal: 10,
 	},
 	arrowIcon: {
 		width: 24,
@@ -175,9 +165,17 @@ const styles = StyleSheet.create({
 	},
 	workoutText: {
 		marginBottom: 5,
+		fontSize: 18,
 	},
 	checkbox: {
 		marginTop: 10,
+	},
+	selectContainer: {
+		marginVertical: 10,
+		width: 200,
+	},
+	select: {
+		marginVertical: 5,
 	},
 });
 
