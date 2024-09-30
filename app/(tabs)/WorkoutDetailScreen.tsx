@@ -24,7 +24,16 @@ const WorkoutDetailScreen: React.FC = () => {
 
 	const week = Array.isArray(weekParam) ? weekParam[0] : weekParam;
 
-	const roundingOptions = [0, 1, 2, 3, 4, 5];
+	const roundingOptions = [
+		'Below target by 2+ reps',
+		'Below target by 1 rep',
+		'Hit target',
+		'Beat by 1 rep',
+		'Beat by 2 reps',
+		'Beat by 3 reps',
+		'Beat by 4 reps',
+		'Beat by 5+ reps',
+	];
 
 	useEffect(() => {
 		const getUserData = async () => {
@@ -62,6 +71,10 @@ const WorkoutDetailScreen: React.FC = () => {
 		const currentCompletion = isCompleted[week] || {};
 		const isAlreadyCompleted = currentCompletion[lift] || false;
 
+		// Fetch the correct adjustment key from the selected index
+		const adjustmentKey = Object.keys(repAdjustments)[selectedReps[lift].row];
+		const adjustmentValue = repAdjustments[adjustmentKey];
+
 		if (!isAlreadyCompleted) {
 			// Store the current max value before adjustment for potential rollback
 			if (lift === 'deadlift' && deadliftMax !== null) {
@@ -73,9 +86,6 @@ const WorkoutDetailScreen: React.FC = () => {
 			}
 
 			// Apply adjustment
-			const adjustmentValueKey =
-				`beat${selectedReps[lift].row}` as keyof typeof repAdjustments;
-			const adjustmentValue = repAdjustments[adjustmentValueKey];
 			const newMaxValue = calculateNewMax(lift, adjustmentValue);
 
 			await updateMaxInStorage(lift, newMaxValue);
@@ -190,10 +200,11 @@ const WorkoutDetailScreen: React.FC = () => {
 						setSelectedReps((prev) => ({ ...prev, [lift]: index as IndexPath }))
 					}
 					style={styles.picker}>
-					{roundingOptions.map((val) => (
-						<SelectItem key={val} title={`Reps: ${val}`} />
+					{Object.keys(repAdjustments).map((key) => (
+						<SelectItem key={key} title={key.replace(/([a-z])([A-Z])/g, '$1 $2')} />
 					))}
 				</Select>
+
 				<CheckBox
 					checked={isCompleted[week]?.[lift] || false}
 					onChange={() => handleComplete(lift)}
