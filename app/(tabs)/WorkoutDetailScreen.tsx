@@ -4,12 +4,15 @@ import { Layout, Text, Icon, CheckBox, Select, SelectItem, IndexPath } from '@ui
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { intensities } from '../../constants/intensities';
+import { repAdjustments } from '../../constants/repAdjustments';
 
 const WorkoutDetailScreen: React.FC = () => {
 	const [squatMax, setSquatMax] = useState<number | null>(null);
 	const [benchMax, setBenchMax] = useState<number | null>(null);
 	const [deadliftMax, setDeadliftMax] = useState<number | null>(null);
-	const [isCompleted, setIsCompleted] = useState<{ [key: string]: boolean }>({});
+	const [isCompleted, setIsCompleted] = useState<{ [week: string]: { [lift: string]: boolean } }>(
+		{}
+	);
 	const [selectedReps, setSelectedReps] = useState<{ [key: string]: IndexPath }>({
 		deadlift: new IndexPath(0),
 		benchPress: new IndexPath(0),
@@ -20,6 +23,7 @@ const WorkoutDetailScreen: React.FC = () => {
 	const { week: weekParam } = useLocalSearchParams();
 
 	const week = Array.isArray(weekParam) ? weekParam[0] : weekParam;
+
 	const roundingOptions = [0, 1, 2, 3, 4, 5];
 
 	useEffect(() => {
@@ -29,28 +33,102 @@ const WorkoutDetailScreen: React.FC = () => {
 				const bench = await AsyncStorage.getItem('benchMax');
 				const deadlift = await AsyncStorage.getItem('deadliftMax');
 				const rounding = await AsyncStorage.getItem('rounding');
+				const completion = await AsyncStorage.getItem(`completion-${week}`);
 
 				if (squat) setSquatMax(parseInt(squat));
 				if (bench) setBenchMax(parseInt(bench));
 				if (deadlift) setDeadliftMax(parseInt(deadlift));
 				if (rounding) setRounding(parseFloat(rounding));
+
+				if (completion) setIsCompleted(JSON.parse(completion));
 			} catch (error) {
 				console.error('Error retrieving data', error);
 			}
 		};
 
 		getUserData();
-	}, []);
+	}, [week]);
 
 	const calculateWorkoutWeight = (oneRepMax: number, percentage: number) => {
 		const weight = oneRepMax * (percentage / 100);
 		return Math.round(weight / rounding) * rounding;
 	};
+	const [previousMaxValues, setPreviousMaxValues] = useState<{
+		[lift: string]: number;
+	}>({});
 
+	// Update handleComplete function
 	const handleComplete = async (lift: string) => {
-		setIsCompleted((prev) => ({ ...prev, [lift]: !prev[lift] }));
-		if (!isCompleted[lift]) {
-			await AsyncStorage.setItem('lastCompletedWeek', week as string);
+		const currentCompletion = isCompleted[week] || {};
+		const isAlreadyCompleted = currentCompletion[lift] || false;
+
+		if (!isAlreadyCompleted) {
+			// Store the current max value before adjustment for potential rollback
+			if (lift === 'deadlift' && deadliftMax !== null) {
+				setPreviousMaxValues((prev) => ({ ...prev, deadlift: deadliftMax }));
+			} else if (lift === 'benchPress' && benchMax !== null) {
+				setPreviousMaxValues((prev) => ({ ...prev, benchPress: benchMax }));
+			} else if (lift === 'squat' && squatMax !== null) {
+				setPreviousMaxValues((prev) => ({ ...prev, squat: squatMax }));
+			}
+
+			// Apply adjustment
+			const adjustmentValueKey =
+				`beat${selectedReps[lift].row}` as keyof typeof repAdjustments;
+			const adjustmentValue = repAdjustments[adjustmentValueKey];
+			const newMaxValue = calculateNewMax(lift, adjustmentValue);
+
+			await updateMaxInStorage(lift, newMaxValue);
+		} else {
+			// Revert to the previous value if marking as incomplete
+			const previousValue = previousMaxValues[lift];
+			if (previousValue !== undefined) {
+				await updateMaxInStorage(lift, previousValue);
+			}
+		}
+
+		// Update completion status, whether checking or unchecking
+		const updatedCompletion = {
+			...isCompleted,
+			[week]: { ...currentCompletion, [lift]: !isAlreadyCompleted },
+		};
+
+		setIsCompleted(updatedCompletion);
+		await AsyncStorage.setItem(`completion-${week}`, JSON.stringify(updatedCompletion));
+	};
+
+	const calculateNewMax = (lift: string, adjustment: number) => {
+		let currentMax = 0;
+		switch (lift) {
+			case 'squat':
+				currentMax = squatMax ?? 0;
+				break;
+			case 'benchPress':
+				currentMax = benchMax ?? 0;
+				break;
+			case 'deadlift':
+				currentMax = deadliftMax ?? 0;
+				break;
+		}
+
+		return currentMax + currentMax * (adjustment / 100);
+	};
+
+	const updateMaxInStorage = async (lift: string, newMax: number) => {
+		const roundedNewMax = Math.round(newMax);
+		switch (lift) {
+			case 'squat':
+				setSquatMax(roundedNewMax);
+				await AsyncStorage.setItem('squatMax', roundedNewMax.toString());
+				break;
+			case 'benchPress':
+				setBenchMax(roundedNewMax);
+				await AsyncStorage.setItem('benchMax', roundedNewMax.toString());
+				break;
+			case 'deadlift':
+				setDeadliftMax(roundedNewMax);
+				await AsyncStorage.setItem('deadliftMax', roundedNewMax.toString());
+				break;
 		}
 	};
 
@@ -85,116 +163,46 @@ const WorkoutDetailScreen: React.FC = () => {
 					/>
 				</View>
 
-				{/* Deadlift */}
-				<View style={styles.workoutSection}>
-					{deadliftMax && (
-						<>
-							<Text category="s1" style={styles.workoutText}>
-								Deadlift:{' '}
-								{calculateWorkoutWeight(
-									deadliftMax,
-									intensities.deadlift[parseInt(week) - 1]
-								)}{' '}
-								lbs, 5 reps
-							</Text>
-							<Text category="s1" style={styles.workoutText}>
-								Repout Target: 9 reps
-							</Text>
-						</>
-					)}
-					<Select
-						label="Beat by X Reps"
-						selectedIndex={selectedReps.deadlift}
-						onSelect={(index) =>
-							setSelectedReps((prev) => ({ ...prev, deadlift: index as IndexPath }))
-						}
-						style={styles.picker}>
-						{roundingOptions.map((val) => (
-							<SelectItem key={val} title={`Reps: ${val}`} />
-						))}
-					</Select>
-					<CheckBox
-						checked={isCompleted.deadlift}
-						onChange={() => handleComplete('deadlift')}
-						style={styles.checkbox}>
-						{isCompleted.deadlift ? 'Completed' : 'Mark as Complete'}
-					</CheckBox>
-				</View>
-
-				{/* Bench Press */}
-				<View style={styles.workoutSection}>
-					{benchMax && (
-						<>
-							<Text category="s1" style={styles.workoutText}>
-								Bench Press:{' '}
-								{calculateWorkoutWeight(
-									benchMax,
-									intensities.benchPress[parseInt(week) - 1]
-								)}{' '}
-								lbs, 5 reps
-							</Text>
-							<Text category="s1" style={styles.workoutText}>
-								Repout Target: 9 reps
-							</Text>
-						</>
-					)}
-					<Select
-						label="Beat by X Reps"
-						selectedIndex={selectedReps.benchPress}
-						onSelect={(index) =>
-							setSelectedReps((prev) => ({ ...prev, benchPress: index as IndexPath }))
-						}
-						style={styles.picker}>
-						{roundingOptions.map((val) => (
-							<SelectItem key={val} title={`Reps: ${val}`} />
-						))}
-					</Select>
-					<CheckBox
-						checked={isCompleted.benchPress}
-						onChange={() => handleComplete('benchPress')}
-						style={styles.checkbox}>
-						{isCompleted.benchPress ? 'Completed' : 'Mark as Complete'}
-					</CheckBox>
-				</View>
-
-				{/* Squat */}
-				<View style={styles.workoutSection}>
-					{squatMax && (
-						<>
-							<Text category="s1" style={styles.workoutText}>
-								Squat:{' '}
-								{calculateWorkoutWeight(
-									squatMax,
-									intensities.squat[parseInt(week) - 1]
-								)}{' '}
-								lbs, 5 reps
-							</Text>
-							<Text category="s1" style={styles.workoutText}>
-								Repout Target: 9 reps
-							</Text>
-						</>
-					)}
-					<Select
-						label="Beat by X Reps"
-						selectedIndex={selectedReps.squat}
-						onSelect={(index) =>
-							setSelectedReps((prev) => ({ ...prev, squat: index as IndexPath }))
-						}
-						style={styles.picker}>
-						{roundingOptions.map((val) => (
-							<SelectItem key={val} title={`Reps: ${val}`} />
-						))}
-					</Select>
-					<CheckBox
-						checked={isCompleted.squat}
-						onChange={() => handleComplete('squat')}
-						style={styles.checkbox}>
-						{isCompleted.squat ? 'Completed' : 'Mark as Complete'}
-					</CheckBox>
-				</View>
+				{/* Render lifts */}
+				{renderWorkoutSection('deadlift', deadliftMax, 'Deadlift')}
+				{renderWorkoutSection('benchPress', benchMax, 'Bench Press')}
+				{renderWorkoutSection('squat', squatMax, 'Squat')}
 			</Layout>
 		</SafeAreaView>
 	);
+
+	function renderWorkoutSection(lift: string, max: number | null, label: string) {
+		if (max === null) return null;
+
+		return (
+			<View style={styles.workoutSection}>
+				<Text category="s1" style={styles.workoutText}>
+					{label}: {calculateWorkoutWeight(max, intensities[lift][parseInt(week) - 1])}{' '}
+					lbs, 5 reps
+				</Text>
+				<Text category="s1" style={styles.workoutText}>
+					Repout Target: 9 reps
+				</Text>
+				<Select
+					label="Beat by X Reps"
+					selectedIndex={selectedReps[lift]}
+					onSelect={(index) =>
+						setSelectedReps((prev) => ({ ...prev, [lift]: index as IndexPath }))
+					}
+					style={styles.picker}>
+					{roundingOptions.map((val) => (
+						<SelectItem key={val} title={`Reps: ${val}`} />
+					))}
+				</Select>
+				<CheckBox
+					checked={isCompleted[week]?.[lift] || false}
+					onChange={() => handleComplete(lift)}
+					style={styles.checkbox}>
+					{isCompleted[week]?.[lift] ? 'Completed' : 'Mark as Complete'}
+				</CheckBox>
+			</View>
+		);
+	}
 };
 
 const styles = StyleSheet.create({
