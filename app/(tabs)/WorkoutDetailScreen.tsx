@@ -24,17 +24,6 @@ const WorkoutDetailScreen: React.FC = () => {
 
 	const week = Array.isArray(weekParam) ? weekParam[0] : weekParam;
 
-	const roundingOptions = [
-		'Below target by 2+ reps',
-		'Below target by 1 rep',
-		'Hit target',
-		'Beat by 1 rep',
-		'Beat by 2 reps',
-		'Beat by 3 reps',
-		'Beat by 4 reps',
-		'Beat by 5+ reps',
-	];
-
 	useEffect(() => {
 		const getUserData = async () => {
 			try {
@@ -72,7 +61,9 @@ const WorkoutDetailScreen: React.FC = () => {
 		const isAlreadyCompleted = currentCompletion[lift] || false;
 
 		// Fetch the correct adjustment key from the selected index
-		const adjustmentKey = Object.keys(repAdjustments)[selectedReps[lift].row];
+		const adjustmentKey = Object.keys(repAdjustments)[
+			selectedReps[lift].row
+		] as keyof typeof repAdjustments;
 		const adjustmentValue = repAdjustments[adjustmentKey];
 
 		if (!isAlreadyCompleted) {
@@ -181,8 +172,31 @@ const WorkoutDetailScreen: React.FC = () => {
 		</SafeAreaView>
 	);
 
-	function renderWorkoutSection(lift: string, max: number | null, label: string) {
+	function renderWorkoutSection(
+		lift: 'squat' | 'benchPress' | 'deadlift',
+		max: number | null,
+		label: string
+	) {
 		if (max === null) return null;
+
+		const adjustmentKeys = Object.keys(repAdjustments) as (keyof typeof repAdjustments)[];
+		const adjustmentValues = Object.values(repAdjustments);
+		const currentSelectedIndex = selectedReps[lift].row;
+
+		// User-friendly labels mapping
+		const adjustmentLabels: { [key in keyof typeof repAdjustments]: string } = {
+			below2: 'Below Target: 2+ Reps',
+			below1: 'Below Target: 1 Rep',
+			hitTarget: 'Hit Target',
+			beat1: 'Beat Target: 1 Rep',
+			beat2: 'Beat Target: 2 Reps',
+			beat3: 'Beat Target: 3 Reps',
+			beat4: 'Beat Target: 4 Reps',
+			beat5Plus: 'Beat Target: 5+ Reps',
+		};
+
+		const currentAdjustmentLabel = adjustmentLabels[adjustmentKeys[currentSelectedIndex]];
+		const currentAdjustmentValue = adjustmentValues[currentSelectedIndex];
 
 		return (
 			<View style={styles.workoutSection}>
@@ -194,14 +208,17 @@ const WorkoutDetailScreen: React.FC = () => {
 					Repout Target: 9 reps
 				</Text>
 				<Select
-					label="Beat by X Reps"
-					selectedIndex={selectedReps[lift]}
+					label="Beat or Miss Target?"
+					value={`${currentAdjustmentLabel}: ${currentAdjustmentValue}%`}
 					onSelect={(index) =>
 						setSelectedReps((prev) => ({ ...prev, [lift]: index as IndexPath }))
 					}
 					style={styles.picker}>
-					{Object.keys(repAdjustments).map((key) => (
-						<SelectItem key={key} title={key.replace(/([a-z])([A-Z])/g, '$1 $2')} />
+					{adjustmentKeys.map((key, index) => (
+						<SelectItem
+							key={key}
+							title={`${adjustmentLabels[key]}: ${adjustmentValues[index]}%`}
+						/>
 					))}
 				</Select>
 
@@ -250,7 +267,7 @@ const styles = StyleSheet.create({
 	},
 	picker: {
 		marginVertical: 10,
-		width: 200,
+		width: 275,
 	},
 });
 
