@@ -1,17 +1,12 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, SafeAreaView } from 'react-native';
 import { Layout, Text, Icon, IndexPath } from '@ui-kitten/components';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { repAdjustments } from '../../constants/repAdjustments';
 import WorkoutSection from '@/components/WorkoutSection';
 import { useWorkoutData } from '../hooks/useWorkoutData';
 import { normalRepsPerWeek, repoutTarget } from '@/constants/intensities';
-import {
-	calculateNewMax,
-	calculateWorkoutWeight,
-	updateMaxInStorage,
-} from '../utils/workoutHelpers';
+import { calculateWorkoutWeight } from '../utils/workoutHelpers';
+import { handleComplete } from '../utils/workoutHandlers';
 
 const WorkoutDetailScreen: React.FC = () => {
 	const router = useRouter();
@@ -38,57 +33,22 @@ const WorkoutDetailScreen: React.FC = () => {
 
 	const [previousMaxValues, setPreviousMaxValues] = useState<{ [lift: string]: number }>({});
 
-	const handleComplete = async (lift: string) => {
-		const currentCompletion = isCompleted[week] || {};
-		const isAlreadyCompleted = currentCompletion[lift] || false;
-
-		// Fetch the correct adjustment key from the selected index
-		const adjustmentKey = Object.keys(repAdjustments)[
-			selectedReps[lift].row
-		] as keyof typeof repAdjustments;
-		const adjustmentValue = repAdjustments[adjustmentKey];
-
-		if (!isAlreadyCompleted) {
-			// Store the current max value before adjustment for potential rollback
-			if (lift === 'deadlift' && deadliftMax !== null) {
-				setPreviousMaxValues((prev) => ({ ...prev, deadlift: deadliftMax }));
-			} else if (lift === 'benchPress' && benchMax !== null) {
-				setPreviousMaxValues((prev) => ({ ...prev, benchPress: benchMax }));
-			} else if (lift === 'squat' && squatMax !== null) {
-				setPreviousMaxValues((prev) => ({ ...prev, squat: squatMax }));
-			}
-
-			// Apply adjustment
-			const newMaxValue = calculateNewMax(
-				lift,
-				adjustmentValue,
-				squatMax,
-				benchMax,
-				deadliftMax
-			);
-			await updateMaxInStorage(lift, newMaxValue, setSquatMax, setBenchMax, setDeadliftMax);
-		} else {
-			// Revert to the previous value if marking as incomplete
-			const previousValue = previousMaxValues[lift];
-			if (previousValue !== undefined) {
-				await updateMaxInStorage(
-					lift,
-					previousValue,
-					setSquatMax,
-					setBenchMax,
-					setDeadliftMax
-				);
-			}
-		}
-
-		// Update completion status, whether checking or unchecking
-		const updatedCompletion = {
-			...isCompleted,
-			[week]: { ...currentCompletion, [lift]: !isAlreadyCompleted },
-		};
-
-		setIsCompleted(updatedCompletion);
-		await AsyncStorage.setItem(`completion-${week}`, JSON.stringify(updatedCompletion));
+	const handleCompleteWrapper = async (lift: string) => {
+		await handleComplete({
+			lift,
+			week,
+			isCompleted,
+			setIsCompleted,
+			selectedReps,
+			setPreviousMaxValues,
+			previousMaxValues,
+			squatMax,
+			benchMax,
+			deadliftMax,
+			setSquatMax,
+			setBenchMax,
+			setDeadliftMax,
+		});
 	};
 
 	const goToNextWeek = () => {
@@ -134,7 +94,7 @@ const WorkoutDetailScreen: React.FC = () => {
 					selectedReps={selectedReps.deadlift}
 					setSelectedReps={setSelectedReps}
 					isCompleted={isCompleted[week]?.deadlift || false}
-					handleComplete={handleComplete}
+					handleComplete={handleCompleteWrapper}
 					calculateWorkoutWeight={(oneRepMax, percentage) =>
 						calculateWorkoutWeight(oneRepMax, percentage, rounding)
 					}
@@ -149,7 +109,7 @@ const WorkoutDetailScreen: React.FC = () => {
 					selectedReps={selectedReps.benchPress}
 					setSelectedReps={setSelectedReps}
 					isCompleted={isCompleted[week]?.benchPress || false}
-					handleComplete={handleComplete}
+					handleComplete={handleCompleteWrapper}
 					calculateWorkoutWeight={(oneRepMax, percentage) =>
 						calculateWorkoutWeight(oneRepMax, percentage, rounding)
 					}
@@ -164,7 +124,7 @@ const WorkoutDetailScreen: React.FC = () => {
 					selectedReps={selectedReps.squat}
 					setSelectedReps={setSelectedReps}
 					isCompleted={isCompleted[week]?.squat || false}
-					handleComplete={handleComplete}
+					handleComplete={handleCompleteWrapper}
 					calculateWorkoutWeight={(oneRepMax, percentage) =>
 						calculateWorkoutWeight(oneRepMax, percentage, rounding)
 					}
@@ -198,7 +158,7 @@ const styles = StyleSheet.create({
 		marginHorizontal: 10,
 	},
 	disabledArrow: {
-		opacity: 0.3, // Change opacity to indicate it's disabled
+		opacity: 0.3,
 	},
 	workoutSection: {
 		alignItems: 'center',
