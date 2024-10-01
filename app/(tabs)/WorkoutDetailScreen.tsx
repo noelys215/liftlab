@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, SafeAreaView } from 'react-native';
 import { Layout, Text, Icon, IndexPath } from '@ui-kitten/components';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -7,11 +7,25 @@ import { useWorkoutData } from '../hooks/useWorkoutData';
 import { normalRepsPerWeek, repoutTarget } from '@/constants/intensities';
 import { calculateWorkoutWeight } from '../utils/workoutHelpers';
 import { handleComplete } from '../utils/workoutHandlers';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const WorkoutDetailScreen: React.FC = () => {
 	const router = useRouter();
-	const { week: weekParam } = useLocalSearchParams();
-	const week = Array.isArray(weekParam) ? weekParam[0] : weekParam;
+	const [week, setWeek] = useState<string>('1');
+
+	// Load the last selected week from AsyncStorage when the component mounts
+	useEffect(() => {
+		const loadLastWeek = async () => {
+			try {
+				const lastWeek = await AsyncStorage.getItem('currentWeek');
+				if (lastWeek) setWeek(lastWeek);
+			} catch (error) {
+				console.error('Error loading last selected week', error);
+			}
+		};
+
+		loadLastWeek();
+	}, []);
 
 	const [selectedReps, setSelectedReps] = useState<{ [key: string]: IndexPath }>({
 		deadlift: new IndexPath(0),
@@ -51,16 +65,29 @@ const WorkoutDetailScreen: React.FC = () => {
 		});
 	};
 
+	// Save the current week to AsyncStorage whenever it changes
+	const saveCurrentWeek = async (newWeek: string) => {
+		try {
+			await AsyncStorage.setItem('currentWeek', newWeek);
+		} catch (error) {
+			console.error('Error saving current week', error);
+		}
+	};
+
 	const goToNextWeek = () => {
-		let nextWeek = parseInt(week as string) + 1;
+		let nextWeek = parseInt(week) + 1;
 		if (nextWeek <= 21) {
+			setWeek(nextWeek.toString());
+			saveCurrentWeek(nextWeek.toString());
 			router.push(`./WorkoutDetailScreen?week=${nextWeek}`);
 		}
 	};
 
 	const goToPreviousWeek = () => {
-		let previousWeek = parseInt(week as string) - 1;
+		let previousWeek = parseInt(week) - 1;
 		if (previousWeek >= 1) {
+			setWeek(previousWeek.toString());
+			saveCurrentWeek(previousWeek.toString());
 			router.push(`./WorkoutDetailScreen?week=${previousWeek}`);
 		}
 	};
