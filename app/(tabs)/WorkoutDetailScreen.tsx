@@ -93,80 +93,79 @@ const WorkoutDetailScreen: React.FC = () => {
 	};
 
 	return (
-		<SafeAreaView style={styles.safeArea}>
-			<Layout style={styles.container}>
-				{/* Week Navigation */}
-				<View style={styles.navigationContainer}>
-					<Icon
-						name="arrow-back-outline"
-						onPress={goToPreviousWeek}
-						style={[styles.arrowIcon, parseInt(week) <= 1 ? styles.disabledArrow : {}]}
-						disabled={parseInt(week) <= 1}
-					/>
-					<Text category="h1">Week {week}</Text>
-					<Icon
-						name="arrow-forward-outline"
-						onPress={goToNextWeek}
-						style={[styles.arrowIcon, parseInt(week) >= 21 ? styles.disabledArrow : {}]}
-						disabled={parseInt(week) >= 21}
-					/>
-				</View>
+		// <SafeAreaView style={styles.safeArea}>
+		<Layout style={styles.container}>
+			{/* Week Navigation */}
+			<View style={styles.navigationContainer}>
+				<Icon
+					name="arrow-back-outline"
+					onPress={goToPreviousWeek}
+					style={[styles.arrowIcon, parseInt(week) <= 1 ? styles.disabledArrow : {}]}
+					disabled={parseInt(week) <= 1}
+				/>
+				<Text category="h1">Week {week}</Text>
+				<Icon
+					name="arrow-forward-outline"
+					onPress={goToNextWeek}
+					style={[styles.arrowIcon, parseInt(week) >= 21 ? styles.disabledArrow : {}]}
+					disabled={parseInt(week) >= 21}
+				/>
+			</View>
 
-				{/* Render lifts */}
-				<WorkoutSection
-					lift="deadlift"
-					max={deadliftMax}
-					label="Deadlift"
-					week={week}
-					selectedReps={selectedReps.deadlift}
-					setSelectedReps={setSelectedReps}
-					isCompleted={isCompleted[week]?.deadlift || false}
-					handleComplete={handleCompleteWrapper}
-					calculateWorkoutWeight={(oneRepMax, percentage) =>
-						calculateWorkoutWeight(oneRepMax, percentage, rounding)
-					}
-					normalReps={normalRepsPerWeek.deadlift[parseInt(week) - 1]}
-					repoutTarget={repoutTarget.deadlift[parseInt(week) - 1]}
-				/>
-				<WorkoutSection
-					lift="benchPress"
-					max={benchMax}
-					label="Bench Press"
-					week={week}
-					selectedReps={selectedReps.benchPress}
-					setSelectedReps={setSelectedReps}
-					isCompleted={isCompleted[week]?.benchPress || false}
-					handleComplete={handleCompleteWrapper}
-					calculateWorkoutWeight={(oneRepMax, percentage) =>
-						calculateWorkoutWeight(oneRepMax, percentage, rounding)
-					}
-					normalReps={normalRepsPerWeek.benchPress[parseInt(week) - 1]}
-					repoutTarget={repoutTarget.benchPress[parseInt(week) - 1]}
-				/>
-				<WorkoutSection
-					lift="squat"
-					max={squatMax}
-					label="Squat"
-					week={week}
-					selectedReps={selectedReps.squat}
-					setSelectedReps={setSelectedReps}
-					isCompleted={isCompleted[week]?.squat || false}
-					handleComplete={handleCompleteWrapper}
-					calculateWorkoutWeight={(oneRepMax, percentage) =>
-						calculateWorkoutWeight(oneRepMax, percentage, rounding)
-					}
-					normalReps={normalRepsPerWeek.squat[parseInt(week) - 1]}
-					repoutTarget={repoutTarget.squat[parseInt(week) - 1]}
-				/>
-			</Layout>
-		</SafeAreaView>
+			{/* Render lifts */}
+			<WorkoutSection
+				lift="deadlift"
+				max={deadliftMax}
+				label="Deadlift"
+				week={week}
+				selectedReps={selectedReps.deadlift}
+				setSelectedReps={setSelectedReps}
+				isCompleted={isCompleted[week]?.deadlift || false}
+				handleComplete={handleCompleteWrapper}
+				calculateWorkoutWeight={(oneRepMax, percentage) =>
+					calculateWorkoutWeight(oneRepMax, percentage, rounding)
+				}
+				normalReps={normalRepsPerWeek.deadlift[parseInt(week) - 1]}
+				repoutTarget={repoutTarget.deadlift[parseInt(week) - 1]}
+			/>
+			<WorkoutSection
+				lift="benchPress"
+				max={benchMax}
+				label="Bench Press"
+				week={week}
+				selectedReps={selectedReps.benchPress}
+				setSelectedReps={setSelectedReps}
+				isCompleted={isCompleted[week]?.benchPress || false}
+				handleComplete={handleCompleteWrapper}
+				calculateWorkoutWeight={(oneRepMax, percentage) =>
+					calculateWorkoutWeight(oneRepMax, percentage, rounding)
+				}
+				normalReps={normalRepsPerWeek.benchPress[parseInt(week) - 1]}
+				repoutTarget={repoutTarget.benchPress[parseInt(week) - 1]}
+			/>
+			<WorkoutSection
+				lift="squat"
+				max={squatMax}
+				label="Squat"
+				week={week}
+				selectedReps={selectedReps.squat}
+				setSelectedReps={setSelectedReps}
+				isCompleted={isCompleted[week]?.squat || false}
+				handleComplete={handleCompleteWrapper}
+				calculateWorkoutWeight={(oneRepMax, percentage) =>
+					calculateWorkoutWeight(oneRepMax, percentage, rounding)
+				}
+				normalReps={normalRepsPerWeek.squat[parseInt(week) - 1]}
+				repoutTarget={repoutTarget.squat[parseInt(week) - 1]}
+			/>
+		</Layout>
+		// </SafeAreaView>
 	);
 };
 
 const styles = StyleSheet.create({
 	safeArea: {
 		flex: 1,
-		backgroundColor: '#fff',
 	},
 	container: {
 		flex: 1,

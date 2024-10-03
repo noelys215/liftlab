@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { SafeAreaView, StyleSheet, View } from 'react-native';
 import {
 	Layout,
 	Text,
@@ -12,6 +12,7 @@ import {
 } from '@ui-kitten/components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 
 const SetupScreen: React.FC = () => {
 	const [squatMax, setSquatMax] = useState<string>('');
@@ -55,7 +56,7 @@ const SetupScreen: React.FC = () => {
 	const SaveIcon = (props: any) => <Icon {...props} name="save-outline" />;
 
 	return (
-		<Layout style={styles.container}>
+		<Layout style={{ ...styles.container }}>
 			<Text category="h1" style={styles.header}>
 				Enter Your One Rep Max
 			</Text>
@@ -94,6 +95,7 @@ const SetupScreen: React.FC = () => {
 			<Button style={styles.button} onPress={saveMaxes} accessoryLeft={SaveIcon}>
 				Save & Continue
 			</Button>
+			<StatusBar style="dark" />
 		</Layout>
 	);
 };
