@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Alert } from 'react-native';
 import {
 	Layout,
 	Text,
@@ -30,6 +30,9 @@ const SetupScreen: React.FC = () => {
 			await AsyncStorage.setItem('deadliftMax', deadliftMax);
 			await AsyncStorage.setItem('rounding', roundingOptions[roundingOption.row].toString());
 
+			// Trigger update in WorkoutDetailScreen
+			await AsyncStorage.setItem('storageUpdated', Date.now().toString());
+
 			// Determine where the user should start
 			const lastCompletedWeek = await AsyncStorage.getItem('lastCompletedWeek');
 			const lastCompletedDay = await AsyncStorage.getItem('lastCompletedDay');
@@ -53,6 +56,38 @@ const SetupScreen: React.FC = () => {
 		}
 	};
 
+	const resetStorage = async () => {
+		Alert.alert(
+			'Reset Data',
+			'Are you sure you want to delete all your saved data and start over?',
+			[
+				{
+					text: 'Cancel',
+					style: 'cancel',
+				},
+				{
+					text: 'OK',
+					onPress: async () => {
+						try {
+							await AsyncStorage.clear();
+							await AsyncStorage.setItem('storageUpdated', Date.now().toString());
+							await AsyncStorage.setItem('reset', 'true'); // Set reset flag
+
+							setSquatMax('');
+							setBenchMax('');
+							setDeadliftMax('');
+							setRoundingOption(new IndexPath(0));
+
+							Alert.alert('Success', 'All data has been reset.');
+						} catch (error) {
+							console.error('Error resetting storage', error);
+						}
+					},
+				},
+			],
+			{ cancelable: true }
+		);
+	};
 	const SaveIcon = (props: any) => <Icon {...props} name="save-outline" />;
 
 	return (
@@ -95,6 +130,11 @@ const SetupScreen: React.FC = () => {
 			<Button style={styles.button} onPress={saveMaxes} accessoryLeft={SaveIcon}>
 				Save & Continue
 			</Button>
+
+			<Button style={styles.resetButton} status="danger" onPress={resetStorage}>
+				Reset Data
+			</Button>
+
 			<StatusBar style="dark" />
 		</Layout>
 	);
@@ -115,6 +155,9 @@ const styles = StyleSheet.create({
 	},
 	button: {
 		marginTop: 20,
+	},
+	resetButton: {
+		marginTop: 10,
 	},
 });
 
