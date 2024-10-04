@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Button } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { Layout, Text, Icon, IndexPath } from '@ui-kitten/components';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import WorkoutSection from '@/components/WorkoutSection';
 import { useWorkoutData } from '../hooks/useWorkoutData';
 import { normalRepsPerWeek, repoutTarget } from '@/constants/intensities';
@@ -13,21 +14,6 @@ const WorkoutDetailScreen: React.FC = () => {
 	const router = useRouter();
 	const [week, setWeek] = useState<string>('1');
 	const [showSetupMessage, setShowSetupMessage] = useState<boolean>(false);
-	const [storageUpdated, setStorageUpdated] = useState<number>(Date.now());
-
-	// Load the last selected week from AsyncStorage when the component mounts
-	useEffect(() => {
-		const loadLastWeek = async () => {
-			try {
-				const lastWeek = await AsyncStorage.getItem('currentWeek');
-				if (lastWeek) setWeek(lastWeek);
-			} catch (error) {
-				console.error('Error loading last selected week', error);
-			}
-		};
-
-		loadLastWeek();
-	}, []);
 
 	const [selectedReps, setSelectedReps] = useState<{ [key: string]: IndexPath }>({
 		deadlift: new IndexPath(0),
@@ -47,31 +33,36 @@ const WorkoutDetailScreen: React.FC = () => {
 		setIsCompleted,
 	} = useWorkoutData(week);
 
-	// Check if max values are set and show the setup message if they are missing
-	useEffect(() => {
-		if (!squatMax || !benchMax || !deadliftMax) {
-			setShowSetupMessage(true);
-		} else {
-			setShowSetupMessage(false);
-		}
-	}, [squatMax, benchMax, deadliftMax, storageUpdated]);
+	// Load the last selected week from AsyncStorage when the component mounts or screen is focused
+	useFocusEffect(
+		useCallback(() => {
+			const loadLastWeek = async () => {
+				try {
+					const lastWeek = await AsyncStorage.getItem('currentWeek');
+					if (lastWeek) {
+						setWeek(lastWeek);
+					} else {
+						setWeek('1');
+					}
 
-	// Monitor storageUpdated and reset flags
-	useEffect(() => {
-		const checkStorageUpdate = async () => {
-			const updated = await AsyncStorage.getItem('storageUpdated');
-			const reset = await AsyncStorage.getItem('reset');
+					// Check if max values are set and show the setup message if they are missing
+					const squatMaxValue = await AsyncStorage.getItem('squatMax');
+					const benchMaxValue = await AsyncStorage.getItem('benchMax');
+					const deadliftMaxValue = await AsyncStorage.getItem('deadliftMax');
 
-			if (reset) {
-				setShowSetupMessage(true);
-				await AsyncStorage.removeItem('reset'); // Clear the reset flag
-			} else if (updated) {
-				setStorageUpdated(parseInt(updated));
-			}
-		};
+					if (!squatMaxValue || !benchMaxValue || !deadliftMaxValue) {
+						setShowSetupMessage(true);
+					} else {
+						setShowSetupMessage(false);
+					}
+				} catch (error) {
+					console.error('Error loading last selected week or max values', error);
+				}
+			};
 
-		checkStorageUpdate();
-	}, [storageUpdated]);
+			loadLastWeek();
+		}, [])
+	);
 
 	const [previousMaxValues, setPreviousMaxValues] = useState<{ [lift: string]: number }>({});
 
