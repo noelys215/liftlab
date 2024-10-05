@@ -6,6 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import * as eva from '@eva-design/eva';
+import GruvTheme from '@/constants/GruvTheme';
 
 export {
 	// Catch any errors thrown by the Layout component.
@@ -46,7 +47,7 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
 	return (
-		<ApplicationProvider {...eva} theme={eva.dark}>
+		<ApplicationProvider {...eva} theme={{ ...eva.dark, ...GruvTheme }}>
 			<Stack>
 				<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 			</Stack>

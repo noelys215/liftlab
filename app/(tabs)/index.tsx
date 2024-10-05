@@ -9,12 +9,14 @@ import {
 	Select,
 	SelectItem,
 	IndexPath,
+	useTheme,
 } from '@ui-kitten/components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
 const SetupScreen: React.FC = () => {
+	const theme = useTheme();
 	const [squatMax, setSquatMax] = useState<string>('');
 	const [benchMax, setBenchMax] = useState<string>('');
 	const [deadliftMax, setDeadliftMax] = useState<string>('');
@@ -91,51 +93,79 @@ const SetupScreen: React.FC = () => {
 	const SaveIcon = (props: any) => <Icon {...props} name="save-outline" />;
 
 	return (
-		<Layout style={{ ...styles.container }}>
-			<Text category="h1" style={styles.header}>
+		<Layout style={[styles.container, { backgroundColor: theme['background-basic-color-1'] }]}>
+			<Text category="h1" style={[styles.header, { color: theme['text-basic-color'] }]}>
 				Enter Your One Rep Max
 			</Text>
 			<Input
-				style={styles.input}
+				style={[
+					styles.input,
+					{ backgroundColor: theme['surface-color-1'], color: theme['text-basic-color'] },
+				]}
 				placeholder="Squat Max"
+				placeholderTextColor={theme['text-hint-color']}
 				keyboardType="numeric"
 				value={squatMax}
 				onChangeText={setSquatMax}
 			/>
 			<Input
-				style={styles.input}
+				style={[
+					styles.input,
+					{ backgroundColor: theme['surface-color-1'], color: theme['text-basic-color'] },
+				]}
 				placeholder="Bench Max"
+				placeholderTextColor={theme['text-hint-color']}
 				keyboardType="numeric"
 				value={benchMax}
 				onChangeText={setBenchMax}
 			/>
 			<Input
-				style={styles.input}
+				style={[
+					styles.input,
+					{ backgroundColor: theme['surface-color-1'], color: theme['text-basic-color'] },
+				]}
 				placeholder="Deadlift Max"
+				placeholderTextColor={theme['text-hint-color']}
 				keyboardType="numeric"
 				value={deadliftMax}
 				onChangeText={setDeadliftMax}
 			/>
 
-			{/* Rounding Option Selector */}
+			{/* Custom Rounding Option Label */}
+			<Text category="s2" style={[styles.label, { color: theme['text-basic-color'] }]}>
+				Rounding Option
+			</Text>
 			<Select
-				label="Rounding Option"
+				placeholder="Select Rounding Option"
+				style={[styles.input, { backgroundColor: theme['surface-color-1'] }]}
 				value={roundingOptions[roundingOption.row]}
 				selectedIndex={roundingOption}
 				onSelect={(index) => setRoundingOption(index as IndexPath)}>
-				<SelectItem title="2.5 lbs" />
-				<SelectItem title="5 lbs" />
+				<SelectItem title="2.5 lbs" style={{ backgroundColor: theme['surface-color-1'] }} />
+				<SelectItem title="5 lbs" style={{ backgroundColor: theme['surface-color-1'] }} />
 			</Select>
 
-			<Button style={styles.button} onPress={saveMaxes} accessoryLeft={SaveIcon}>
+			<Button
+				style={[
+					styles.button,
+					{
+						backgroundColor: theme['color-primary-500'],
+						borderColor: theme['color-primary-600'],
+					},
+				]}
+				onPress={saveMaxes}
+				accessoryLeft={SaveIcon}>
 				Save & Continue
 			</Button>
 
-			<Button style={styles.resetButton} status="danger" onPress={resetStorage}>
+			<Button
+				style={[styles.resetButton, { backgroundColor: theme['color-primary-600'] }]}
+				status="danger"
+				onPress={resetStorage}>
 				Reset Data
 			</Button>
 
-			<StatusBar style="dark" />
+			<StatusBar style="light" />
 		</Layout>
 	);
 };
@@ -150,8 +180,14 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		marginBottom: 20,
 	},
+	label: {
+		marginBottom: 5,
+		fontSize: 16,
+	},
 	input: {
 		marginBottom: 10,
+		borderRadius: 5,
+		width: '100%',
 	},
 	button: {
 		marginTop: 20,

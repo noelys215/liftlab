@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Text, Select, SelectItem, CheckBox, IndexPath } from '@ui-kitten/components';
+import { Text, Select, SelectItem, CheckBox, IndexPath, useTheme } from '@ui-kitten/components';
 import { intensities } from '../constants/intensities';
 import { repAdjustments } from '../constants/repAdjustments';
 
@@ -33,6 +33,8 @@ const WorkoutSection: React.FC<WorkoutSectionProps> = ({
 }) => {
 	if (max === null) return null;
 
+	const theme = useTheme();
+
 	const adjustmentKeys = Object.keys(repAdjustments) as (keyof typeof repAdjustments)[];
 	const adjustmentValues = Object.values(repAdjustments);
 
@@ -51,12 +53,21 @@ const WorkoutSection: React.FC<WorkoutSectionProps> = ({
 	const currentAdjustmentValue = adjustmentValues[selectedReps.row];
 
 	return (
-		<View style={[styles.workoutSection, { borderColor: isCompleted ? 'green' : '#CCCCCC' }]}>
-			<Text category="s1" style={styles.workoutText}>
+		<View
+			style={[
+				styles.workoutSection,
+				{
+					borderColor: isCompleted
+						? theme['color-success-500']
+						: theme['border-basic-color-1'],
+					backgroundColor: theme['surface-color-1'],
+				},
+			]}>
+			<Text category="s1" style={[styles.workoutText, { color: theme['text-basic-color'] }]}>
 				{label}: {calculateWorkoutWeight(max, intensities[lift][parseInt(week) - 1])} lbs,{' '}
 				{normalReps} reps
 			</Text>
-			<Text category="s1" style={styles.workoutText}>
+			<Text category="s1" style={[styles.workoutText, { color: theme['text-basic-color'] }]}>
 				Repout Target: {repoutTarget} reps
 			</Text>
 			<Select
@@ -88,13 +99,10 @@ const styles = StyleSheet.create({
 	workoutSection: {
 		alignItems: 'center',
 		marginVertical: 10,
-		//
 		paddingVertical: 20,
 		paddingHorizontal: 15,
 		borderRadius: 10,
 		borderWidth: 2,
-		borderColor: '#CCCCCC',
-		backgroundColor: '#1e293b',
 	},
 	workoutText: {
 		marginBottom: 5,

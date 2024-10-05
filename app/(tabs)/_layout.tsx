@@ -2,35 +2,40 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { IconRegistry, Icon, Layout } from '@ui-kitten/components';
 import { EvaIconsPack } from '@ui-kitten/eva-icons';
-import { StatusBar } from 'react-native';
+import { useTheme } from '@ui-kitten/components';
 
 // Tab Icon Component
 function TabBarIcon(props: { name: string; color: string }) {
+	const theme = useTheme();
 	return (
 		<Icon
 			name={props.name}
 			pack="eva"
 			fill={props.color}
-			style={{ width: 28, height: 28, marginBottom: -3 }}
+			style={{ width: 28, height: 28, marginBottom: -3, color: theme['color-primary-200'] }}
 		/>
 	);
 }
 
 export default function TabLayout() {
+	const theme = useTheme();
+
 	return (
 		<>
 			<IconRegistry icons={EvaIconsPack} />
-			<Layout style={{ flex: 1 }}>
+			<Layout style={{ flex: 1, backgroundColor: theme['background-basic-color-1'] }}>
 				<Tabs
 					screenOptions={{
 						tabBarLabelStyle: { fontSize: 14 },
 						headerShown: false,
-						tabBarActiveTintColor: '#FFD700',
+						tabBarActiveTintColor: theme['color-accent-500'],
+						tabBarInactiveTintColor: theme['text-basic-color'],
 						tabBarStyle: {
-							backgroundColor: '#1a1a1a',
+							backgroundColor: theme['color-primary-500'],
 							height: 80,
 							paddingBottom: 20,
-							borderTopWidth: 0,
+							borderTopWidth: 2,
+							borderTopColor: theme['color-accent-400'],
 						},
 					}}>
 					{/* Setup Screen Tab */}
@@ -49,7 +54,6 @@ export default function TabLayout() {
 						name="WorkoutDetailScreen"
 						options={{
 							title: 'Workouts',
-
 							headerShown: false,
 							tabBarIcon: ({ color }) => (
 								<TabBarIcon name="activity-outline" color={color} />
