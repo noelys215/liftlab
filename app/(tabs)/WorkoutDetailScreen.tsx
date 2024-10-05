@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Layout, Text, Icon, IndexPath } from '@ui-kitten/components';
+import { Layout, Text, Icon, IndexPath, useTheme, Card } from '@ui-kitten/components';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import WorkoutSection from '@/components/WorkoutSection';
@@ -9,8 +9,10 @@ import { normalRepsPerWeek, repoutTarget } from '@/constants/intensities';
 import { calculateWorkoutWeight } from '../utils/workoutHelpers';
 import { handleComplete } from '../utils/workoutHandlers';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const WorkoutDetailScreen: React.FC = () => {
+	const theme = useTheme();
 	const router = useRouter();
 	const [week, setWeek] = useState<string>('1');
 	const [showSetupMessage, setShowSetupMessage] = useState<boolean>(false);
@@ -115,82 +117,90 @@ const WorkoutDetailScreen: React.FC = () => {
 		<Layout style={styles.container}>
 			{showSetupMessage ? (
 				<View style={styles.setupMessageContainer}>
-					<Text style={styles.setupMessageText}>
-						Complete the setup to enter your one-rep max values before starting your
-						workout.
-					</Text>
+					<Card style={styles.setupCard}>
+						<Text style={styles.setupMessageText}>
+							Complete the setup to enter your one-rep max values before starting your
+							workout.
+						</Text>
+					</Card>
 				</View>
 			) : (
 				<>
 					{/* Week Navigation */}
-					<View style={styles.navigationContainer}>
-						<Icon
-							name="arrow-back-outline"
-							onPress={goToPreviousWeek}
-							style={[
-								styles.arrowIcon,
-								parseInt(week) <= 1 ? styles.disabledArrow : {},
-							]}
-							disabled={parseInt(week) <= 1}
-						/>
-						<Text category="h1">Week {week}</Text>
-						<Icon
-							name="arrow-forward-outline"
-							onPress={goToNextWeek}
-							style={[
-								styles.arrowIcon,
-								parseInt(week) >= 21 ? styles.disabledArrow : {},
-							]}
-							disabled={parseInt(week) >= 21}
-						/>
-					</View>
+					<SafeAreaView>
+						<View style={styles.navigationContainer}>
+							<Icon
+								name="arrow-back-outline"
+								onPress={goToPreviousWeek}
+								fill={theme['color-accent-300']}
+								style={[
+									styles.arrowIcon,
+									parseInt(week) <= 1 ? styles.disabledArrow : {},
+								]}
+								disabled={parseInt(week) <= 1}
+							/>
+							<Text category="h1" style={{ fontFamily: 'Eva', margin: 'auto' }}>
+								Week {week}
+							</Text>
+							<Icon
+								name="arrow-forward-outline"
+								onPress={goToNextWeek}
+								fill={theme['color-accent-300']}
+								style={[
+									styles.arrowIcon,
+									parseInt(week) >= 21 ? styles.disabledArrow : {},
+								]}
+								disabled={parseInt(week) >= 21}
+							/>
+						</View>
 
-					{/* Render lifts */}
-					<WorkoutSection
-						lift="deadlift"
-						max={deadliftMax}
-						label="Deadlift"
-						week={week}
-						selectedReps={selectedReps.deadlift}
-						setSelectedReps={setSelectedReps}
-						isCompleted={isCompleted[week]?.deadlift || false}
-						handleComplete={handleCompleteWrapper}
-						calculateWorkoutWeight={(oneRepMax, percentage) =>
-							calculateWorkoutWeight(oneRepMax, percentage, rounding)
-						}
-						normalReps={normalRepsPerWeek.deadlift[parseInt(week) - 1]}
-						repoutTarget={repoutTarget.deadlift[parseInt(week) - 1]}
-					/>
-					<WorkoutSection
-						lift="benchPress"
-						max={benchMax}
-						label="Bench Press"
-						week={week}
-						selectedReps={selectedReps.benchPress}
-						setSelectedReps={setSelectedReps}
-						isCompleted={isCompleted[week]?.benchPress || false}
-						handleComplete={handleCompleteWrapper}
-						calculateWorkoutWeight={(oneRepMax, percentage) =>
-							calculateWorkoutWeight(oneRepMax, percentage, rounding)
-						}
-						normalReps={normalRepsPerWeek.benchPress[parseInt(week) - 1]}
-						repoutTarget={repoutTarget.benchPress[parseInt(week) - 1]}
-					/>
-					<WorkoutSection
-						lift="squat"
-						max={squatMax}
-						label="Squat"
-						week={week}
-						selectedReps={selectedReps.squat}
-						setSelectedReps={setSelectedReps}
-						isCompleted={isCompleted[week]?.squat || false}
-						handleComplete={handleCompleteWrapper}
-						calculateWorkoutWeight={(oneRepMax, percentage) =>
-							calculateWorkoutWeight(oneRepMax, percentage, rounding)
-						}
-						normalReps={normalRepsPerWeek.squat[parseInt(week) - 1]}
-						repoutTarget={repoutTarget.squat[parseInt(week) - 1]}
-					/>
+						{/* Render lifts */}
+						<WorkoutSection
+							lift="deadlift"
+							max={deadliftMax}
+							label="Deadlift"
+							week={week}
+							selectedReps={selectedReps.deadlift}
+							setSelectedReps={setSelectedReps}
+							isCompleted={isCompleted[week]?.deadlift || false}
+							handleComplete={handleCompleteWrapper}
+							calculateWorkoutWeight={(oneRepMax, percentage) =>
+								calculateWorkoutWeight(oneRepMax, percentage, rounding)
+							}
+							normalReps={normalRepsPerWeek.deadlift[parseInt(week) - 1]}
+							repoutTarget={repoutTarget.deadlift[parseInt(week) - 1]}
+						/>
+						<WorkoutSection
+							lift="benchPress"
+							max={benchMax}
+							label="Bench Press"
+							week={week}
+							selectedReps={selectedReps.benchPress}
+							setSelectedReps={setSelectedReps}
+							isCompleted={isCompleted[week]?.benchPress || false}
+							handleComplete={handleCompleteWrapper}
+							calculateWorkoutWeight={(oneRepMax, percentage) =>
+								calculateWorkoutWeight(oneRepMax, percentage, rounding)
+							}
+							normalReps={normalRepsPerWeek.benchPress[parseInt(week) - 1]}
+							repoutTarget={repoutTarget.benchPress[parseInt(week) - 1]}
+						/>
+						<WorkoutSection
+							lift="squat"
+							max={squatMax}
+							label="Squat"
+							week={week}
+							selectedReps={selectedReps.squat}
+							setSelectedReps={setSelectedReps}
+							isCompleted={isCompleted[week]?.squat || false}
+							handleComplete={handleCompleteWrapper}
+							calculateWorkoutWeight={(oneRepMax, percentage) =>
+								calculateWorkoutWeight(oneRepMax, percentage, rounding)
+							}
+							normalReps={normalRepsPerWeek.squat[parseInt(week) - 1]}
+							repoutTarget={repoutTarget.squat[parseInt(week) - 1]}
+						/>
+					</SafeAreaView>
 				</>
 			)}
 		</Layout>
@@ -200,18 +210,18 @@ const WorkoutDetailScreen: React.FC = () => {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		justifyContent: 'center',
+		justifyContent: 'space-around',
 		alignItems: 'center',
 		paddingHorizontal: 20,
 	},
 	navigationContainer: {
 		alignItems: 'center',
-		marginVertical: 10,
+		marginVertical: 25,
 		flexDirection: 'row',
 	},
 	arrowIcon: {
-		width: 32,
-		height: 32,
+		width: 42,
+		height: 42,
 		marginHorizontal: 10,
 	},
 	disabledArrow: {
@@ -223,11 +233,18 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		padding: 20,
 	},
+	setupCard: {
+		width: '110%',
+		padding: 20,
+		borderRadius: 10,
+		backgroundColor: '#3c3836',
+		borderColor: '#f59e0b',
+	},
 	setupMessageText: {
 		textAlign: 'center',
 		marginBottom: 20,
-		fontSize: 18,
-		color: 'white',
+		fontSize: 24,
+		fontFamily: 'Eva',
 	},
 });
 

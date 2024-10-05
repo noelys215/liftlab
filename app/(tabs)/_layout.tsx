@@ -12,7 +12,7 @@ function TabBarIcon(props: { name: string; color: string }) {
 			name={props.name}
 			pack="eva"
 			fill={props.color}
-			style={{ width: 28, height: 28, marginBottom: -3, color: theme['color-primary-200'] }}
+			style={{ width: 28, height: 28, marginBottom: -3 }}
 		/>
 	);
 }
@@ -26,9 +26,9 @@ export default function TabLayout() {
 			<Layout style={{ flex: 1, backgroundColor: theme['background-basic-color-1'] }}>
 				<Tabs
 					screenOptions={{
-						tabBarLabelStyle: { fontSize: 14 },
+						tabBarLabelStyle: { fontSize: 14, fontFamily: 'Eva' },
 						headerShown: false,
-						tabBarActiveTintColor: theme['color-accent-500'],
+						tabBarActiveTintColor: theme['color-accent-300'],
 						tabBarInactiveTintColor: theme['text-basic-color'],
 						tabBarStyle: {
 							backgroundColor: theme['color-primary-500'],

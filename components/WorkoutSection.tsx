@@ -103,10 +103,12 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 15,
 		borderRadius: 10,
 		borderWidth: 2,
+		width: 380,
 	},
 	workoutText: {
 		marginBottom: 5,
 		fontSize: 18,
+		fontFamily: 'Eva',
 	},
 	checkbox: {
 		marginTop: 10,
