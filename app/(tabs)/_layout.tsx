@@ -28,7 +28,7 @@ export default function TabLayout() {
 					screenOptions={{
 						tabBarLabelStyle: { fontSize: 14, fontFamily: 'Eva' },
 						headerShown: false,
-						tabBarActiveTintColor: theme['color-accent-300'],
+						tabBarActiveTintColor: theme['color-accent-600'],
 						tabBarInactiveTintColor: theme['text-basic-color'],
 						tabBarStyle: {
 							backgroundColor: theme['color-primary-500'],

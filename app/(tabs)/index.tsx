@@ -167,7 +167,7 @@ const SetupScreen: React.FC = () => {
 					style={[
 						styles.button,
 						{
-							backgroundColor: theme['color-primary-500'],
+							backgroundColor: theme['color-accent-400'],
 							borderColor: theme['color-primary-600'],
 						},
 					]}
@@ -177,7 +177,7 @@ const SetupScreen: React.FC = () => {
 				</Button>
 
 				<Button
-					style={[styles.resetButton, { backgroundColor: theme['color-primary-600'] }]}
+					style={[styles.resetButton, { backgroundColor: theme['color-accent-100'] }]}
 					status="danger"
 					onPress={resetStorage}>
 					Reset Data
