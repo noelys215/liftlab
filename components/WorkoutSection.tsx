@@ -64,9 +64,13 @@ const WorkoutSection: React.FC<WorkoutSectionProps> = ({
 				},
 			]}>
 			<Text category="s1" style={[styles.workoutText, { color: theme['text-basic-color'] }]}>
-				{label}: {calculateWorkoutWeight(max, intensities[lift][parseInt(week) - 1])} lbs,{' '}
-				{normalReps} reps
+				{label}: {calculateWorkoutWeight(max, intensities[lift][parseInt(week) - 1])} lbs
 			</Text>
+
+			<Text category="s1" style={[styles.workoutText, { color: theme['text-basic-color'] }]}>
+				{normalReps} reps x 3 sets
+			</Text>
+
 			<Text category="s1" style={[styles.workoutText, { color: theme['text-basic-color'] }]}>
 				Repout Target: {repoutTarget} reps
 			</Text>

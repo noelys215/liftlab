@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { StyleSheet, View, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import {
 	Layout,
 	Text,
@@ -14,7 +14,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 const SetupScreen: React.FC = () => {
 	const theme = useTheme();
@@ -25,6 +25,35 @@ const SetupScreen: React.FC = () => {
 	const router = useRouter();
 
 	const roundingOptions = [2.5, 5];
+
+	// Load the stored values from AsyncStorage when the component mounts or screen is focused
+	const loadStoredValues = async () => {
+		try {
+			const storedSquatMax = await AsyncStorage.getItem('squatMax');
+			const storedBenchMax = await AsyncStorage.getItem('benchMax');
+			const storedDeadliftMax = await AsyncStorage.getItem('deadliftMax');
+			const storedRounding = await AsyncStorage.getItem('rounding');
+
+			if (storedSquatMax) setSquatMax(storedSquatMax);
+			if (storedBenchMax) setBenchMax(storedBenchMax);
+			if (storedDeadliftMax) setDeadliftMax(storedDeadliftMax);
+			if (storedRounding) {
+				const roundingIndex = roundingOptions.findIndex(
+					(option) => option.toString() === storedRounding
+				);
+				if (roundingIndex !== -1) setRoundingOption(new IndexPath(roundingIndex));
+			}
+		} catch (error) {
+			console.error('Error loading stored values', error);
+		}
+	};
+
+	// Use `useFocusEffect` to load the stored values whenever the screen comes into focus
+	useFocusEffect(
+		useCallback(() => {
+			loadStoredValues();
+		}, [])
+	);
 
 	const saveMaxes = async () => {
 		try {
@@ -91,6 +120,7 @@ const SetupScreen: React.FC = () => {
 			{ cancelable: true }
 		);
 	};
+
 	const SaveIcon = (props: any) => <Icon {...props} name="save-outline" />;
 
 	return (
@@ -108,6 +138,7 @@ const SetupScreen: React.FC = () => {
 							color: theme['text-basic-color'],
 						},
 					]}
+					label={'Squat Max'}
 					placeholder="Squat Max"
 					placeholderTextColor={theme['text-hint-color']}
 					keyboardType="numeric"
@@ -122,6 +153,7 @@ const SetupScreen: React.FC = () => {
 							color: theme['text-basic-color'],
 						},
 					]}
+					label={'Bench Max'}
 					placeholder="Bench Max"
 					placeholderTextColor={theme['text-hint-color']}
 					keyboardType="numeric"
@@ -136,6 +168,7 @@ const SetupScreen: React.FC = () => {
 							color: theme['text-basic-color'],
 						},
 					]}
+					label={'Deadlift Max'}
 					placeholder="Deadlift Max"
 					placeholderTextColor={theme['text-hint-color']}
 					keyboardType="numeric"

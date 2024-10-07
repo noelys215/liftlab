@@ -213,10 +213,11 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-around',
 		alignItems: 'center',
 		paddingHorizontal: 20,
+		paddingTop: 20,
 	},
 	navigationContainer: {
 		alignItems: 'center',
-		marginVertical: 25,
+		marginVertical: 10,
 		flexDirection: 'row',
 	},
 	arrowIcon: {
