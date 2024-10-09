@@ -1,4 +1,5 @@
-![Project Status](https://img.shields.io/badge/status-on_hold-yellow)
+![Project Status](https://img.shields.io/badge/status-on_hold-yellow)  
+(On Hold until I can afford to deploy on ios 😅)
 
 # **LiftLab - Stronger by Science Companion App**
 
@@ -38,12 +39,22 @@ LiftLab is a React Native workout tracking app designed to help users optimize t
 
 ### **1. Setup Screen**
 
+<div align="center">
+    <img src="https://github.com/user-attachments/assets/003334cb-0520-45b1-aa16-fa1e69e4379c" width="500px">
+</div>
+
+<hr/>
 -   This screen allows users to input their current 1RM values for Squat, Bench Press, and Deadlift.
 -   The user can select a rounding option (2.5 lbs or 5 lbs) for future weight calculations.
 -   If values are already stored, they will be pre-populated upon re-opening the app or visiting the setup screen.
 
 ### **2. Workout Detail Screen**
 
+<div align="center">
+    <img src="https://github.com/user-attachments/assets/08cf730a-e908-41cf-b8e7-39e4cd0efc04" width="500px">
+</div>
+
+<hr/>
 -   Displays detailed information for the current week's workout for Squat, Bench Press, and Deadlift.
 -   Users can view their target weights, rep goals, and repout targets.
 -   Allows users to mark whether they met or missed their rep goals, and this data will adjust future weights.
