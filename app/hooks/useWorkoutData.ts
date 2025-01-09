@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const useWorkoutData = (week: string) => {
+export const useWorkoutData = (week: string, refreshTrigger: number) => {
 	const [squatMax, setSquatMax] = useState<number | null>(null);
 	const [benchMax, setBenchMax] = useState<number | null>(null);
 	const [deadliftMax, setDeadliftMax] = useState<number | null>(null);
@@ -30,7 +30,7 @@ export const useWorkoutData = (week: string) => {
 		};
 
 		getUserData();
-	}, [week]);
+	}, [week, refreshTrigger]);
 
 	return {
 		squatMax,

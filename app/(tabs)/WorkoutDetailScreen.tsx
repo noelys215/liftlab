@@ -12,6 +12,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const WorkoutDetailScreen: React.FC = () => {
+	const [refreshTrigger, setRefreshTrigger] = useState(0); // Add refreshTrigger state
+
 	const theme = useTheme();
 	const router = useRouter();
 	const [week, setWeek] = useState<string>('1');
@@ -33,7 +35,19 @@ const WorkoutDetailScreen: React.FC = () => {
 		rounding,
 		isCompleted,
 		setIsCompleted,
-	} = useWorkoutData(week);
+	} = useWorkoutData(week, refreshTrigger);
+
+	useEffect(() => {
+		const checkResetFlag = async () => {
+			const resetFlag = await AsyncStorage.getItem('reset');
+			if (resetFlag) {
+				setRefreshTrigger((prev) => prev + 1); // Trigger re-render
+				await AsyncStorage.removeItem('reset'); // Clear the flag
+			}
+		};
+
+		checkResetFlag();
+	}, []);
 
 	// Load the last selected week from AsyncStorage when the component mounts or screen is focused
 	useFocusEffect(
@@ -233,6 +247,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		padding: 20,
+		maxWidth: 500,
 	},
 	setupCard: {
 		width: '110%',

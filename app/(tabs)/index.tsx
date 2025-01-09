@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { StyleSheet, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import {
 	Layout,
 	Text,
@@ -103,8 +103,6 @@ const SetupScreen: React.FC = () => {
 						try {
 							await AsyncStorage.clear();
 							await AsyncStorage.setItem('storageUpdated', Date.now().toString());
-							await AsyncStorage.setItem('reset', 'true'); // Set reset flag
-
 							setSquatMax('');
 							setBenchMax('');
 							setDeadliftMax('');
@@ -130,92 +128,95 @@ const SetupScreen: React.FC = () => {
 				<Text category="h1" style={[styles.header, { color: theme['text-basic-color'] }]}>
 					Enter Your 1RM
 				</Text>
-				<Input
-					style={[
-						styles.input,
-						{
-							backgroundColor: theme['surface-color-1'],
-							color: theme['text-basic-color'],
-						},
-					]}
-					label={'Squat Max'}
-					placeholder="Squat Max"
-					placeholderTextColor={theme['text-hint-color']}
-					keyboardType="numeric"
-					value={squatMax}
-					onChangeText={setSquatMax}
-				/>
-				<Input
-					style={[
-						styles.input,
-						{
-							backgroundColor: theme['surface-color-1'],
-							color: theme['text-basic-color'],
-						},
-					]}
-					label={'Bench Max'}
-					placeholder="Bench Max"
-					placeholderTextColor={theme['text-hint-color']}
-					keyboardType="numeric"
-					value={benchMax}
-					onChangeText={setBenchMax}
-				/>
-				<Input
-					style={[
-						styles.input,
-						{
-							backgroundColor: theme['surface-color-1'],
-							color: theme['text-basic-color'],
-						},
-					]}
-					label={'Deadlift Max'}
-					placeholder="Deadlift Max"
-					placeholderTextColor={theme['text-hint-color']}
-					keyboardType="numeric"
-					value={deadliftMax}
-					onChangeText={setDeadliftMax}
-				/>
-
-				{/* Custom Rounding Option Label */}
-				<Text category="s2" style={[styles.label, { color: theme['text-basic-color'] }]}>
-					Rounding Option
-				</Text>
-				<Select
-					placeholder="Select Rounding Option"
-					style={[styles.select, { backgroundColor: theme['surface-color-1'] }]}
-					value={roundingOptions[roundingOption.row]}
-					selectedIndex={roundingOption}
-					onSelect={(index) => setRoundingOption(index as IndexPath)}>
-					<SelectItem
-						title="2.5 lbs"
-						style={{ backgroundColor: theme['surface-color-1'] }}
+				<Layout style={styles.formContainer}>
+					<Input
+						style={[
+							styles.input,
+							{
+								backgroundColor: theme['surface-color-1'],
+								color: theme['text-basic-color'],
+							},
+						]}
+						label={'Squat Max'}
+						placeholder="Squat Max"
+						placeholderTextColor={theme['text-hint-color']}
+						keyboardType="numeric"
+						value={squatMax}
+						onChangeText={setSquatMax}
 					/>
-					<SelectItem
-						title="5 lbs"
-						style={{ backgroundColor: theme['surface-color-1'] }}
+					<Input
+						style={[
+							styles.input,
+							{
+								backgroundColor: theme['surface-color-1'],
+								color: theme['text-basic-color'],
+							},
+						]}
+						label={'Bench Max'}
+						placeholder="Bench Max"
+						placeholderTextColor={theme['text-hint-color']}
+						keyboardType="numeric"
+						value={benchMax}
+						onChangeText={setBenchMax}
 					/>
-				</Select>
+					<Input
+						style={[
+							styles.input,
+							{
+								backgroundColor: theme['surface-color-1'],
+								color: theme['text-basic-color'],
+							},
+						]}
+						label={'Deadlift Max'}
+						placeholder="Deadlift Max"
+						placeholderTextColor={theme['text-hint-color']}
+						keyboardType="numeric"
+						value={deadliftMax}
+						onChangeText={setDeadliftMax}
+					/>
 
-				<Button
-					style={[
-						styles.button,
-						{
-							backgroundColor: theme['color-accent-400'],
-							borderColor: theme['color-primary-600'],
-						},
-					]}
-					onPress={saveMaxes}
-					accessoryLeft={SaveIcon}>
-					Save & Continue
-				</Button>
+					{/* Custom Rounding Option Label */}
+					<Text
+						category="s2"
+						style={[styles.label, { color: theme['text-basic-color'] }]}>
+						Rounding Option
+					</Text>
+					<Select
+						placeholder="Select Rounding Option"
+						style={[styles.select, { backgroundColor: theme['surface-color-1'] }]}
+						value={roundingOptions[roundingOption.row]}
+						selectedIndex={roundingOption}
+						onSelect={(index) => setRoundingOption(index as IndexPath)}>
+						<SelectItem
+							title="2.5 lbs"
+							style={{ backgroundColor: theme['surface-color-1'] }}
+						/>
+						<SelectItem
+							title="5 lbs"
+							style={{ backgroundColor: theme['surface-color-1'] }}
+						/>
+					</Select>
 
-				<Button
-					style={[styles.resetButton, { backgroundColor: theme['color-accent-100'] }]}
-					status="danger"
-					onPress={resetStorage}>
-					Reset Data
-				</Button>
+					<Button
+						style={[
+							styles.button,
+							{
+								backgroundColor: theme['color-accent-400'],
+								borderColor: theme['color-primary-600'],
+							},
+						]}
+						onPress={saveMaxes}
+						accessoryLeft={SaveIcon}>
+						Save & Continue
+					</Button>
 
+					<Button
+						style={[styles.resetButton, { backgroundColor: theme['color-accent-100'] }]}
+						status="danger"
+						onPress={resetStorage}>
+						Reset Data
+					</Button>
+				</Layout>
 				<StatusBar style="light" />
 			</Layout>
 		</TouchableWithoutFeedback>
@@ -226,12 +227,18 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		justifyContent: 'center',
+		alignItems: 'center',
 		padding: 20,
 	},
 	header: {
 		textAlign: 'center',
 		marginBottom: 20,
 		fontFamily: 'Eva',
+	},
+	formContainer: {
+		width: '90%',
+		maxWidth: 400, // Restrict width for larger screens
+		alignSelf: 'center',
 	},
 	label: {
 		marginBottom: 5,
@@ -241,13 +248,10 @@ const styles = StyleSheet.create({
 	input: {
 		marginBottom: 10,
 		borderRadius: 5,
-		width: '100%',
 	},
 	select: {
 		marginBottom: 10,
 		borderRadius: 5,
-		width: '100%',
-		backgroundColor: 'red',
 	},
 	button: {
 		marginTop: 20,

@@ -72,7 +72,7 @@ const WorkoutSection: React.FC<WorkoutSectionProps> = ({
 			</Text>
 
 			<Text category="s1" style={[styles.workoutText, { color: theme['text-basic-color'] }]}>
-				Repout Target: {repoutTarget} reps
+				(4th) Final Set: {repoutTarget} reps
 			</Text>
 			<Select
 				label="Beat or Miss Target?"
@@ -111,6 +111,7 @@ const styles = StyleSheet.create({
 	},
 	workoutText: {
 		marginBottom: 5,
+		paddingBottom: 1,
 		fontSize: 18,
 		fontFamily: 'Eva',
 	},
